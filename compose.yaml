@@ -1,0 +1,26 @@
+x-api-environment: &api-environment
+  ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__RTEvents: "Server=sqlserver,1433;Database=RTEvents;User Id=sa;Password=RtEvents_Local_2026!;Encrypt=True;TrustServerCertificate=True"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "RtEvents_Local_2026!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+  api:
+    build: .
+    environment: *api-environment
+    ports:
+      - "8080:8080"
+    depends_on:
+      sqlserver:
+        condition: service_started
+
+volumes:
+  sqlserver-data:
