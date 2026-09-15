@@ -15,6 +15,7 @@ services:
 
   api:
     build: .
+    restart: on-failure
     environment: *api-environment
     ports:
       - "8080:8080"
