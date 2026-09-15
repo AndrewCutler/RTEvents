@@ -2,6 +2,10 @@ using Microsoft.EntityFrameworkCore;
 
 public class RTEventsDbContext : DbContext
 {
+    public RTEventsDbContext(DbContextOptions<RTEventsDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<Event> Events { get; set; }
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<PricingTier> PricingTiers { get; set; }
@@ -11,16 +15,11 @@ public class RTEventsDbContext : DbContext
     {
         // Event
         builder.Entity<Event>()
-            .HasMany(e => e.Tickets)
-            .WithOne()
-            .HasForeignKey(e => e.EventId);
-
-        builder.Entity<Event>()
             .HasMany(e => e.PricingTiers);
 
         builder.Entity<Event>()
             .HasOne(e => e.Venue)
-            .WithMany()
+            .WithMany(v => v.Events)
             .HasForeignKey(e => e.VenueId);
 
         builder.Entity<Event>()
@@ -37,7 +36,7 @@ public class RTEventsDbContext : DbContext
         // Ticket
         builder.Entity<Ticket>()
             .HasOne(e => e.Event)
-            .WithMany()
+            .WithMany(e => e.Tickets)
             .HasForeignKey(e => e.EventId);
 
         builder.Entity<Ticket>()
@@ -45,8 +44,7 @@ public class RTEventsDbContext : DbContext
 
         // Venue
         builder.Entity<Venue>()
-            .HasMany(e => e.Events)
-            .WithOne()
-            .HasForeignKey(e => e.VenueId);
+            .Property(e => e.Name)
+            .HasColumnType("nvarchar(200)");
     }
 }
