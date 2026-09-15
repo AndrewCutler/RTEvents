@@ -1,0 +1,6 @@
+@RTEvents.API_HostAddress = http://localhost:5276
+
+GET {{RTEvents.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
