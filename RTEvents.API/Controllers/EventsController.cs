@@ -4,7 +4,7 @@ using RTEvents.API.DTOs;
 namespace RTEvents.API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class EventsController : ControllerBase
 {
     private readonly IEventsService _eventsService;
@@ -15,7 +15,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("{id}", Name = nameof(GetEventByIdAsync))]
-    public async Task<ActionResult<IEnumerable<WeatherForecast>>> GetEventByIdAsync([FromRoute] int id)
+    public async Task<ActionResult<EventDTO>> GetEventByIdAsync([FromRoute] int id)
     {
         var result = await _eventsService.GetByIdAsync(id);
 
@@ -36,7 +36,8 @@ public class EventsController : ControllerBase
             date: dto.Date,
             time: dto.Time,
             timezone: dto.Timezone,
-            ticketCapacity: dto.TicketCapacity
+            ticketCapacity: dto.TicketCapacity,
+            venueId: dto.VenueId
         );
 
         return CreatedAtRoute(
@@ -46,9 +47,18 @@ public class EventsController : ControllerBase
     }
 
     [HttpPatch(Name = nameof(UpdateEventAsync))]
-    public async Task<ActionResult<EventDTO>> UpdateEventAsync([FromBody] dynamic dto)
+    public async Task<ActionResult<EventDTO>> UpdateEventAsync([FromBody] UpdateEventRequestDTO dto)
     {
-        return Ok();
+        var result = await _eventsService.UpdateAsync(
+            id: dto.Id,
+            name: dto.Name,
+            description: dto.Description,
+            date: dto.Date,
+            time: dto.Time,
+            timezone: dto.Timezone,
+            ticketCapacity: dto.TicketCapacity);
+
+        return Ok(EventDTO.FromDomain(result));
     }
 
     [HttpDelete("{id}", Name = nameof(DeleteEventAsync))]

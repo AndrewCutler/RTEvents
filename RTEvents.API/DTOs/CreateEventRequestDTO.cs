@@ -6,5 +6,5 @@ public record CreateEventRequestDTO(
     [Required] DateOnly Date,
     [Required] TimeOnly Time,
     [Required, MinLength(3)] string Timezone,
-    [Required, MinLength(3)] string VenueId,
+    [Required, Range(1, int.MaxValue)] int VenueId,
     [Required, Range(1, int.MaxValue)] int TicketCapacity);
