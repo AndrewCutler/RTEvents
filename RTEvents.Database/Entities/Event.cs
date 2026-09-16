@@ -6,7 +6,7 @@ public class Event
         {
             throw new ArgumentException("Event name cannot be null or empty.", nameof(name));
         }
-        
+
         if (string.IsNullOrWhiteSpace(description))
         {
             throw new ArgumentException("Event description cannot be null or empty.", nameof(description));
@@ -35,18 +35,100 @@ public class Event
         TicketCapacity = ticketCapacity;
         VenueId = venueId;
     }
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public DateOnly Date { get; set; }
-    public TimeOnly Time { get; set; }
-    public string Timezone { get; set; } = string.Empty;
-    public int TicketCapacity { get; set; }
 
-    public int VenueId { get; set; }
-    public Venue Venue { get; set; } = default!;
+    public void Update(
+        string? name,
+        string? description,
+        DateOnly? date,
+        TimeOnly? time,
+        string? timezone,
+        int? venueId,
+        int? ticketCapacity)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            Name = name;
+        }
 
-    public ICollection<PricingTier> PricingTiers { get; set; } = [];
-    public ICollection<Ticket> Tickets { get; set; } = [];
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            Description = description;
+        }
 
+        if (date is not null)
+        {
+            Date = date.Value;
+        }
+
+        if (time is not null)
+        {
+            Time = time.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(timezone))
+        {
+            Timezone = timezone;
+        }
+
+        if (venueId.HasValue)
+        {
+            if (venueId <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(venueId),
+                    "Ticket capacity must be greater than zero.");
+            }
+
+            VenueId = venueId.Value;
+        }
+
+        if (ticketCapacity.HasValue)
+        {
+            if (ticketCapacity <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(ticketCapacity),
+                    "Ticket capacity must be greater than zero.");
+            }
+
+            TicketCapacity = ticketCapacity.Value;
+        }
+    }
+
+    public void Activate()
+    {
+        Status = EventStatus.Active;
+    }
+
+    public void Deactivate()
+    {
+        Status = EventStatus.Inactive;
+    }
+
+    public void Delete()
+    {
+        Status = EventStatus.Deleted;
+    }
+
+    public int Id { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
+    public DateOnly Date { get; private set; }
+    public TimeOnly Time { get; private set; }
+    public string Timezone { get; private set; } = string.Empty;
+    public int TicketCapacity { get; private set; }
+    public EventStatus Status { get; private set; }
+
+    public int VenueId { get; private set; }
+    public Venue Venue { get; private set; } = default!;
+
+    public ICollection<PricingTier> PricingTiers { get; private set; } = [];
+    public ICollection<Ticket> Tickets { get; private set; } = [];
+}
+
+public enum EventStatus
+{
+    Active,
+    Inactive,
+    Deleted
 }

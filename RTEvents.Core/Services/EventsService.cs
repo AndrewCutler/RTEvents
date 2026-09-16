@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 public class EventsService : IEventsService
 {
     private readonly RTEventsDbContext _context;
@@ -27,7 +25,7 @@ public class EventsService : IEventsService
             ticketCapacity,
             venueId);
 
-        await ValidateEventAsync(@event);
+        await ValidateAsync(@event);
 
         _context.Events.Add(@event);
         await _context.SaveChangesAsync();
@@ -37,7 +35,15 @@ public class EventsService : IEventsService
 
     public async Task DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var @event = await _context.Events.FindAsync(id);
+
+        if (@event is null)
+        {
+            throw new Exception("todo: custom domain exception.");
+        }
+
+        @event.Delete();
+        await _context.SaveChangesAsync();
     }
 
     public async Task<Event?> GetByIdAsync(int id)
@@ -54,12 +60,32 @@ public class EventsService : IEventsService
         DateOnly? date = null,
         TimeOnly? time = null,
         string? timezone = null,
+        int? venueId = null,
         int? ticketCapacity = null)
     {
-        throw new NotImplementedException();
+        var @event = await _context.Events.FindAsync(id);
+
+        if (@event is null)
+        {
+            throw new Exception("todo: custom domain exception.");
+        }
+
+        @event.Update(
+            name: name,
+            description: description,
+            date: date,
+            time: time,
+            timezone: timezone,
+            venueId: venueId,
+            ticketCapacity: ticketCapacity);
+
+        await ValidateAsync(@event);
+        await _context.SaveChangesAsync();
+
+        return @event;
     }
 
-    private async Task ValidateEventAsync(Event @event)
+    private async Task ValidateAsync(Event @event)
     {
         var venue = await _context.Venues.FindAsync(@event.VenueId);
         if (venue is null)
