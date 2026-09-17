@@ -14,16 +14,23 @@ public class TicketsController : ControllerBase
     }
 
     [HttpPut("{eventId}/purchase")]
-    public async Task<ActionResult<dynamic>> PurchaseEventTicketAsync(
+    public async Task<ActionResult<PurchaseTicketsResponseDTO>> PurchaseEventTicketAsync(
         [FromBody] PurchaseTicketRequestDTO dto,
         [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey)
     {
-        return Ok();
+        var response = await _ticketsService.PurchaseTicketsAsync(
+            quantity: dto.Quantity,
+            eventId: dto.EventId,
+            idempotencyKey: idempotencyKey);
+
+        return Ok(PurchaseTicketsResponseDTO.FromDomain(response));
     }
 
     [HttpGet("{eventId}/availability")]
-    public async Task<ActionResult<dynamic>> GetEventTicketAvailabilityAsync([FromRoute] int eventId)
+    public async Task<ActionResult<TicketAvailabilityDTO>> GetEventTicketAvailabilityAsync([FromRoute] int eventId)
     {
-        return Ok();
+        var result = await _ticketsService.GetTicketAvailabilityAsync(eventId);
+
+        return Ok(TicketAvailabilityDTO.FromDomain(result));
     }
 }

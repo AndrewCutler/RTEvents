@@ -1,0 +1,1 @@
+public record TicketAvailability(int EventId, int AvailableCount, int HeldCount, int SoldCount, int TicketCapacity);

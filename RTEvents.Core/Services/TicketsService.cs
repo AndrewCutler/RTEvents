@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 public class TicketsService : ITicketsService
 {
@@ -76,5 +77,24 @@ public class TicketsService : ITicketsService
 
             throw;
         }
+    }
+
+
+    public async Task<TicketAvailability> GetTicketAvailabilityAsync(int eventId)
+    {
+        var @event = await _context.Events
+            .Include(e => e.Tickets)
+            .SingleOrDefaultAsync(e => e.Id == eventId);
+
+        if (@event is null)
+        {
+            throw new EventNotFoundException(eventId);
+        }
+
+        var available = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Available);
+        var held = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Held);
+        var sold = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Sold);
+
+        return new TicketAvailability(eventId, available, held, sold, @event.TicketCapacity);
     }
 }
