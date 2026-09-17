@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 public class Event
 {
     public Event(string name, string description, DateOnly date, TimeOnly time, string timezone, int ticketCapacity, int venueId)
@@ -110,6 +112,35 @@ public class Event
         Status = EventStatus.Deleted;
     }
 
+    public IEnumerable<Ticket> HoldTickets(int quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new Exception("todo: custom exception");
+        }
+
+        if (quantity > AvailableTicketCount)
+        {
+            throw new Exception("todo: custom exception");
+        }
+
+        var tickets = new List<Ticket>();
+        for (var i = 0; i < quantity; i++)
+        {
+            var ticket = new Ticket // TODO: constructor
+            {
+                EventId = Id,
+                AvailabilityStatus = AvailabilityStatus.Held,
+            };
+            tickets.Add(ticket);
+            Tickets.Add(ticket);
+        }
+
+        AvailableTicketCount -= tickets.Count;
+
+        return tickets;
+    }
+
     public int Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
@@ -117,7 +148,10 @@ public class Event
     public TimeOnly Time { get; private set; }
     public string Timezone { get; private set; } = string.Empty;
     public int TicketCapacity { get; private set; }
+    public int AvailableTicketCount { get; private set; }
     public EventStatus Status { get; private set; }
+    [Timestamp]
+    public byte[] RowVersion { get; private set; } = [];
 
     public int VenueId { get; private set; }
     public Venue Venue { get; private set; } = default!;

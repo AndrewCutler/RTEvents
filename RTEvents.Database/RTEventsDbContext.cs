@@ -10,6 +10,9 @@ public class RTEventsDbContext : DbContext
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<PricingTier> PricingTiers { get; set; }
     public DbSet<Venue> Venues { get; set; }
+    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+    public DbSet<Purchase> Purchases { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -31,11 +34,20 @@ public class RTEventsDbContext : DbContext
             .HasColumnType("nvarchar(2000)");
 
         builder.Entity<Event>()
+            .Property(e => e.RowVersion)
+            .IsRowVersion();
+
+        builder.Entity<Event>()
             .ToTable(t => t.HasCheckConstraint("CK_Event_TIcketCapacity", "[TicketCapacity] > 0"));
 
         // Ticket
         builder.Entity<Ticket>()
             .HasOne(e => e.Event)
+            .WithMany(e => e.Tickets)
+            .HasForeignKey(e => e.EventId);
+
+        builder.Entity<Ticket>()
+            .HasOne(e => e.Purchase)
             .WithMany(e => e.Tickets)
             .HasForeignKey(e => e.EventId);
 
@@ -46,5 +58,14 @@ public class RTEventsDbContext : DbContext
         builder.Entity<Venue>()
             .Property(e => e.Name)
             .HasColumnType("nvarchar(200)");
+
+        // Payment
+        builder.Entity<Payment>()
+            .HasOne(e => e.Purchase)
+            .WithOne();
+
+        // IdempotencyKey 
+        builder.Entity<IdempotencyKey>()
+            .HasKey(e => e.Key);
     }
 }

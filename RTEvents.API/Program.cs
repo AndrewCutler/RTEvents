@@ -13,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("RTEvents")
 
 builder.Services.AddDbContext<RTEventsDbContext>(opts => opts.UseSqlServer(connectionString));
 builder.Services.AddScoped<IEventsService, EventsService>();
+builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IReportingService, ReportingService>();
 
 var app = builder.Build();
