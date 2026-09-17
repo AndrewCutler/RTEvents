@@ -1,6 +1,3 @@
-using System.Data;
-using Microsoft.EntityFrameworkCore;
-
 public class TicketsService : ITicketsService
 {
     private readonly RTEventsDbContext _context;

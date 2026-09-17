@@ -1,3 +1,5 @@
+using System.Net;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -7,6 +9,12 @@ public class ErrorsController : ControllerBase
 {
     public IActionResult HandleError()
     {
-        return Problem();
+        var exception = HttpContext.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+
+        return exception switch
+        {
+            EventNotFoundException or VenueNotFoundException => NotFound(),
+            _ => Problem(statusCode: StatusCodes.Status500InternalServerError, title: "An unexpeted error occurred."),
+        };
     }
 }

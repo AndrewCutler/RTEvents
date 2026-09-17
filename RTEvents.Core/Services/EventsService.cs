@@ -39,7 +39,7 @@ public class EventsService : IEventsService
 
         if (@event is null)
         {
-            throw new Exception("todo: custom domain exception.");
+            throw new EventNotFoundException(id);
         }
 
         @event.Delete();
@@ -67,7 +67,7 @@ public class EventsService : IEventsService
 
         if (@event is null)
         {
-            throw new Exception("todo: custom domain exception.");
+            throw new EventNotFoundException(id);
         }
 
         @event.Update(
@@ -90,7 +90,7 @@ public class EventsService : IEventsService
         var venue = await _context.Venues.FindAsync(@event.VenueId);
         if (venue is null)
         {
-            throw new Exception("todo: custom domain exception.");
+            throw new VenueNotFoundException(@event.VenueId);
         }
 
         if (venue.Capacity < @event.TicketCapacity)
