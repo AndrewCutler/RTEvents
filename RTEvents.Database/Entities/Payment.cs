@@ -1,12 +1,16 @@
 public class Payment
 {
-    public Payment(decimal cost,  string paymentDetails, int purchaseId)
+    private Payment()
+    {
+    }
+
+    public Payment(decimal cost, string paymentDetails, Purchase purchase)
     {
         Cost = cost;
         Status = PaymentStatus.Pending;
         PaymentDetails = paymentDetails;
         CreatedAt = DateTimeOffset.UtcNow;
-        PurchaseId = purchaseId;
+        Purchase = purchase;
     }
 
     public int Id { get; private set; }

@@ -51,7 +51,7 @@ public class TicketsService : ITicketsService
 
             var tickets = @event.HoldTickets(quantity);
             var purchase = new Purchase(tickets.Sum(t => t.Cost), tickets);
-            var payment = new Payment(purchase.Total, "TODO: from request", purchase.Id);
+            var payment = new Payment(purchase.Total, "TODO: from request", purchase);
 
             _context.Payments.Add(payment);
             _context.Purchases.Add(purchase);

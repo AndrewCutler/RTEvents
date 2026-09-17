@@ -1,5 +1,9 @@
 public class Purchase
 {
+    private Purchase()
+    {
+    }
+
     public Purchase(decimal total, IEnumerable<Ticket> tickets)
     {
         Total = total;
@@ -13,7 +17,6 @@ public class Purchase
     public PurchaseStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public int PaymentId { get; private set; }
     public Payment Payment { get; private set; } = default!;
     public ICollection<Ticket> Tickets { get; private set; } = [];
 }

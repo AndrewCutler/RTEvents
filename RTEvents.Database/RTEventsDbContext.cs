@@ -49,10 +49,14 @@ public class RTEventsDbContext : DbContext
         builder.Entity<Ticket>()
             .HasOne(e => e.Purchase)
             .WithMany(e => e.Tickets)
-            .HasForeignKey(e => e.EventId);
+            .HasForeignKey(e => e.PurchaseId);
 
         builder.Entity<Ticket>()
             .ToTable(t => t.HasCheckConstraint("CK_Event_TIcketCost", "[Cost] >= 0"));
+
+        builder.Entity<Ticket>()
+            .Property(e => e.Cost)
+            .HasPrecision(18, 2);
 
         // Venue
         builder.Entity<Venue>()
@@ -62,7 +66,17 @@ public class RTEventsDbContext : DbContext
         // Payment
         builder.Entity<Payment>()
             .HasOne(e => e.Purchase)
-            .WithOne();
+            .WithOne(e => e.Payment)
+            .HasForeignKey<Payment>(e => e.PurchaseId);
+
+        builder.Entity<Payment>()
+            .Property(e => e.Cost)
+            .HasPrecision(18, 2);
+
+        // Purchase
+        builder.Entity<Purchase>()
+            .Property(e => e.Total)
+            .HasPrecision(18, 2);
 
         // IdempotencyKey 
         builder.Entity<IdempotencyKey>()
