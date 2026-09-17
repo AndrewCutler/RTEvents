@@ -15,6 +15,8 @@ builder.Services.AddDbContext<RTEventsDbContext>(opts => opts.UseSqlServer(conne
 builder.Services.AddScoped<IEventsService, EventsService>();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IReportingService, ReportingService>();
+builder.Services.AddScoped<IMessageBus, MessageBus>();
+builder.Services.AddHostedService<OutboxHandler>();
 
 var app = builder.Build();
 

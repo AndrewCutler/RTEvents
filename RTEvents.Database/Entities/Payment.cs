@@ -13,6 +13,16 @@ public class Payment
         Purchase = purchase;
     }
 
+    public void MarkSucceeded()
+    {
+        Status = PaymentStatus.Succeeded;
+    }
+
+    public void MarkFailed()
+    {
+        Status = PaymentStatus.Failed;
+    }
+
     public int Id { get; private set; }
     public decimal Cost { get; private set; }
     public PaymentStatus Status { get; private set; }

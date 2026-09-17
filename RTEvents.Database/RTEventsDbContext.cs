@@ -10,9 +10,12 @@ public class RTEventsDbContext : DbContext
     public DbSet<Ticket> Tickets { get; set; }
     public DbSet<PricingTier> PricingTiers { get; set; }
     public DbSet<Venue> Venues { get; set; }
-    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
     public DbSet<Purchase> Purchases { get; set; }
     public DbSet<Payment> Payments { get; set; }
+
+    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

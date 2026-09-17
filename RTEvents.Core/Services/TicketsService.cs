@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 public class TicketsService : ITicketsService
 {
     private readonly RTEventsDbContext _context;
@@ -55,6 +57,13 @@ public class TicketsService : ITicketsService
 
             _context.Payments.Add(payment);
             _context.Purchases.Add(purchase);
+            // Run SaveChangesAsync() before adding outbox message so we generate payment.Id
+            await _context.SaveChangesAsync();
+            _context.OutboxMessages.Add(new OutboxMessage
+            {
+                Message = JsonSerializer.Serialize(payment),
+                Status = OutboxMessageStatus.Pending,
+            });
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
