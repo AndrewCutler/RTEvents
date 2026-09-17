@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace RTEvents.Database.Migrations
 {
     [DbContext(typeof(RTEventsDbContext))]
-    partial class RTEventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917165803_Messages")]
+    partial class Messages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,44 +283,6 @@ namespace RTEvents.Database.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Venues");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Capacity = 400,
-                            Name = "Venue 1"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Capacity = 5000,
-                            Name = "Venue 2"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Capacity = 75000,
-                            Name = "Venue 3"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Capacity = 1000,
-                            Name = "Venue 4"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Capacity = 1500,
-                            Name = "Venue 5"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Capacity = 3,
-                            Name = "Venue 6"
-                        });
                 });
 
             modelBuilder.Entity("Event", b =>

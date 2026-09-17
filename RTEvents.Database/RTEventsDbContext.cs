@@ -84,5 +84,22 @@ public class RTEventsDbContext : DbContext
         // IdempotencyKey 
         builder.Entity<IdempotencyKey>()
             .HasKey(e => e.Key);
+
+        SeedVenues(builder);
+    }
+
+    private void SeedVenues(ModelBuilder builder)
+    {
+        var venues = new List<Venue>
+        {
+            new Venue{ Id = 1, Name = "Venue 1", Capacity = 400, },
+            new Venue{ Id = 2, Name = "Venue 2", Capacity = 5000, },
+            new Venue{ Id = 3, Name = "Venue 3", Capacity = 75000, },
+            new Venue{ Id = 4, Name = "Venue 4", Capacity = 1000, },
+            new Venue{ Id = 5, Name = "Venue 5", Capacity = 1500, },
+            new Venue{ Id = 6, Name = "Venue 6", Capacity = 3, },
+        };
+
+        builder.Entity<Venue>().HasData(venues);
     }
 }
