@@ -2,7 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 public class Event
 {
-    public Event(string name, string description, DateOnly date, TimeOnly time, string timezone, int ticketCapacity, int venueId)
+    public Event(
+        string name,
+        string description,
+        DateOnly date,
+        TimeOnly time,
+        string timezone,
+        int ticketCapacity,
+        int venueId)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -35,6 +42,7 @@ public class Event
         Time = time;
         Timezone = timezone;
         TicketCapacity = ticketCapacity;
+        AvailableTicketCount = ticketCapacity;
         VenueId = venueId;
     }
 

@@ -14,6 +14,7 @@ public class ErrorsController : ControllerBase
         return exception switch
         {
             EventNotFoundException or VenueNotFoundException => NotFound(),
+            EventOverCapacityException => BadRequest(new { message = exception.Message }),
             _ => Problem(statusCode: StatusCodes.Status500InternalServerError, title: "An unexpeted error occurred."),
         };
     }

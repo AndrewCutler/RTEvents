@@ -14,12 +14,26 @@ public class ReportingService : IReportingService
         var result = new EventsReport();
 
         var events = await _context.Events
-            .Include(e => e.Venue)
-            .Include(e => e.Tickets)
             .OrderByDescending(e => e.Date)
             .Skip(skip)
             .Take(take)
-            .AsNoTracking()
+            .Select(e => new
+            {
+                e.Id,
+                e.Name,
+                e.AvailableTicketCount,
+                Venue = new
+                {
+                    e.Venue.Id,
+                    e.Venue.Name,
+                },
+                Tickets = e.Tickets.Select(t => new
+                {
+                    t.Cost,
+                    t.Id,
+                    t.AvailabilityStatus,
+                }).ToList(),
+            })
             .ToListAsync();
 
         var totalOfAllEventTickets = 0.0m;
@@ -31,7 +45,6 @@ public class ReportingService : IReportingService
         {
             var totalCostOfEventTickets = 0.0m;
             var eventSoldCount = 0;
-            var eventAvailableCount = 0;
             var eventHeldCount = 0;
 
             foreach (var ticket in @event.Tickets)
@@ -40,9 +53,6 @@ public class ReportingService : IReportingService
 
                 switch (ticket.AvailabilityStatus)
                 {
-                    case AvailabilityStatus.Available:
-                        eventAvailableCount++;
-                        break;
                     case AvailabilityStatus.Held:
                         eventHeldCount++;
                         break;
@@ -55,17 +65,19 @@ public class ReportingService : IReportingService
 
             totalOfAllEventTickets += totalCostOfEventTickets;
             totalSoldCount += eventSoldCount;
-            totalAvailableCount += eventAvailableCount;
+            totalAvailableCount += @event.AvailableTicketCount;
             totalHeldCount += eventHeldCount;
 
             var report = new EventReport
             {
                 EventId = @event.Id,
                 EventName = @event.Name,
+                EventTicketsAvailable = @event.AvailableTicketCount,
                 EventSales = totalCostOfEventTickets,
                 EventTicketsHeld = eventHeldCount,
                 EventTicketsSold = eventSoldCount,
-                EventTicketsAvailable = eventAvailableCount
+                VenueId = @event.Venue.Id,
+                VenueName = @event.Venue.Name,
             };
 
             result.TotalSales = totalOfAllEventTickets;

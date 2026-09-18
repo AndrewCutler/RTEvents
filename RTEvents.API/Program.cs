@@ -6,7 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict);
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddSchemaTransformer((schema, context, _) =>
+    {
+        if (context.JsonTypeInfo.Type == typeof(TimeOnly))
+            schema.Example = System.Text.Json.Nodes.JsonValue.Create("17:00:00.000");
+
+        return Task.CompletedTask;
+    });
+});
 
 var connectionString = builder.Configuration.GetConnectionString("RTEvents")
     ?? throw new InvalidOperationException("Connection string 'RTEvents' is missing.");

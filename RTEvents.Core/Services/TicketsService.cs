@@ -10,7 +10,7 @@ public class TicketsService : ITicketsService
         _context = context;
     }
 
-    public async Task<Purchase> PurchaseTicketsAsync(int quantity, int eventId, string? idempotencyKey)
+    public async Task<Purchase> PurchaseTicketsAsync(int quantity, int eventId, string paymentDetails, string? idempotencyKey)
     {
         if (string.IsNullOrWhiteSpace(idempotencyKey))
         {
@@ -51,10 +51,10 @@ public class TicketsService : ITicketsService
             {
                 throw new Exception("todo custom exception");
             }
-
+            
             var tickets = @event.HoldTickets(quantity);
             var purchase = new Purchase(tickets.Sum(t => t.Cost), tickets);
-            var payment = new Payment(purchase.Total, "TODO: from request", purchase);
+            var payment = new Payment(purchase.Total, paymentDetails, purchase);
 
             _context.Payments.Add(payment);
             _context.Purchases.Add(purchase);
@@ -62,7 +62,12 @@ public class TicketsService : ITicketsService
             await _context.SaveChangesAsync();
             _context.OutboxMessages.Add(new OutboxMessage
             {
-                Message = JsonSerializer.Serialize(payment),
+                Message = JsonSerializer.Serialize(new PaymentRequestedEvent
+                {
+                    PaymentId = payment.Id,
+                    Cost = purchase.Total,
+                    PaymentDetails = paymentDetails,
+                }),
                 Status = OutboxMessageStatus.Pending,
             });
             await _context.SaveChangesAsync();
@@ -91,9 +96,9 @@ public class TicketsService : ITicketsService
             throw new EventNotFoundException(eventId);
         }
 
-        var available = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Available);
         var held = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Held);
         var sold = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Sold);
+        var available = @event.TicketCapacity - (held + sold);
 
         return new TicketAvailability(eventId, available, held, sold, @event.TicketCapacity);
     }

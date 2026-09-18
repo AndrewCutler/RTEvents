@@ -95,7 +95,7 @@ public class EventsService : IEventsService
 
         if (venue.Capacity < @event.TicketCapacity)
         {
-            throw new Exception("todo: custom domain exception.");
+            throw new EventOverCapacityException(@event.TicketCapacity);
         }
     }
 }

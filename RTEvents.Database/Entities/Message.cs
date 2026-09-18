@@ -2,7 +2,7 @@
 public class Message
 {
     public int Id { get; set; }
-    // Payment.cs or PaymentResponse.cs
+    // PaymentResponseEvent or PaymentRequestedEvent
     public string Payload { get; set; } = string.Empty;
     public MessageType Type { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

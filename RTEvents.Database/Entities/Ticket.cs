@@ -18,7 +18,6 @@ public class Ticket
 
 public enum AvailabilityStatus
 {
-    Available = 0,
-    Held,
+    Held = 0,
     Sold,
 }

@@ -28,7 +28,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost(Name = nameof(CreateEventAsync))]
-    public async Task<ActionResult<dynamic>> CreateEventAsync([FromBody] CreateEventRequestDTO dto)
+    public async Task<ActionResult<EventDTO>> CreateEventAsync([FromBody] CreateEventRequestDTO dto)
     {
         var result = await _eventsService.CreateAsync(
             name: dto.Name,
