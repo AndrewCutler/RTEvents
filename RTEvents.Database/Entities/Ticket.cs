@@ -1,6 +1,6 @@
 public class Ticket
 {
-    private Ticket() { }
+    private Ticket() {}
 
     public Ticket(int eventId)
     {
@@ -11,12 +11,12 @@ public class Ticket
     {
         AvailabilityStatus = AvailabilityStatus.Held;
     }
-
+    
     public void MarkSold()
     {
         AvailabilityStatus = AvailabilityStatus.Sold;
     }
-
+    
     public int Id { get; private set; }
     public decimal Cost { get; private set; }
     public AvailabilityStatus AvailabilityStatus { get; private set; }

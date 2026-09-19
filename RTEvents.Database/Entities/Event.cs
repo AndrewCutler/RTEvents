@@ -124,12 +124,12 @@ public class Event
     {
         if (quantity <= 0)
         {
-            throw new Exception("todo: custom exception");
+            throw new ArgumentException("Quantity must be positive.");
         }
 
         if (quantity > AvailableTicketCount)
         {
-            throw new Exception("todo: custom exception");
+            throw new ArgumentException($"Quantity exceeds available ticket count {AvailableTicketCount}.");
         }
 
         var tickets = new List<Ticket>();

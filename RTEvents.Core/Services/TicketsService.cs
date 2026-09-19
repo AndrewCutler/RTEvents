@@ -91,7 +91,21 @@ public class TicketsService : ITicketsService
     public async Task<TicketAvailability> GetTicketAvailabilityAsync(int eventId, CancellationToken cancellationToken = default)
     {
         var @event = await _context.Events
-            .Include(e => e.Tickets)
+            .Select(e => new
+            {
+                e.Id,
+                e.TicketCapacity,
+                Held = e.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Held),
+                Sold = e.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Sold),
+            })
+            .Select(e => new
+            {
+                e.Id,
+                e.TicketCapacity,
+                e.Held,
+                e.Sold,
+                Available = e.TicketCapacity - (e.Held + e.Sold),
+            })
             .SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken);
 
         if (@event is null)
@@ -99,10 +113,7 @@ public class TicketsService : ITicketsService
             throw new EventNotFoundException(eventId);
         }
 
-        var held = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Held);
-        var sold = @event.Tickets.Count(t => t.AvailabilityStatus == AvailabilityStatus.Sold);
-        var available = @event.TicketCapacity - (held + sold);
 
-        return new TicketAvailability(eventId, available, held, sold, @event.TicketCapacity);
+        return new TicketAvailability(eventId, @event.Available, @event.Held, @event.Sold, @event.TicketCapacity);
     }
 }

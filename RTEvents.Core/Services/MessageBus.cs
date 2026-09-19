@@ -6,7 +6,8 @@ using Microsoft.Extensions.Logging;
 // This is run as a background job in the API layer, which is a coupling
 // that is acceptable for a small app/POC but a more scalable solution
 // would move this into its own deployable asset that can be 
-// independently scaled if needed.
+// independently scaled if needed. However, multiple workers would
+// also require better concurrency handling and batching.
 public class MessageBus : IMessageBus
 {
     private readonly ILogger<MessageBus> _logger;
@@ -103,7 +104,13 @@ public class MessageBus : IMessageBus
             .Where(m => successes.Contains(m.Id))
             .ToListAsync(cancellationToken);
 
-        var tickets = await _context.Tickets
+        var successTickets = await _context.Tickets
+            .Include(t => t.Purchase)
+                .ThenInclude(p => p.Payment)
+            .Where(t => successes.Contains(t.Purchase.Payment.Id))
+            .ToListAsync(cancellationToken);
+
+        var failureTickets = await _context.Tickets
             .Include(t => t.Purchase)
                 .ThenInclude(p => p.Payment)
             .Where(t => successes.Contains(t.Purchase.Payment.Id))
@@ -118,13 +125,14 @@ public class MessageBus : IMessageBus
             payment.MarkSucceeded();
         }
 
-        foreach (var ticket in tickets)
+        foreach (var ticket in successTickets)
         {
             ticket.MarkSold();
         }
 
         foreach (var payment in failedPayments)
         {
+            // Gap here: failures never release held tickets.
             payment.MarkFailed();
         }
 
