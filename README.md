@@ -12,3 +12,11 @@ Docker volume. The `sa` password is `RtEvents_Local_2026!` in `compose.yaml`.
 On subsequent runs, the API checks migrations again. EF Core applies only
 migrations that have not yet been recorded in the database.
 Use `docker compose down` to stop the services; the database volume remains.
+
+## Design
+
+For an outline of the application's design, see DESIGN.md.
+
+## Tests
+
+All tests live in RTEvents.Tests. See its README.md for more details.
