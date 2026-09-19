@@ -2,5 +2,5 @@
   <Project Path="RTEvents.API/RTEvents.API.csproj" />
   <Project Path="RTEvents.Core/RTEvents.Core.csproj" />
   <Project Path="RTEvents.Database/RTEvents.Database.csproj" />
-  <Project Path="RTEvents.Test/RTEvents.Test.csproj" />
+  <Project Path="RTEvents.Tests/RTEvents.Tests.csproj" />
 </Solution>
