@@ -2,6 +2,11 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+// Service to spoof integration with a message bus.
+// This is run as a background job in the API layer, which is a coupling
+// that is acceptable for a small app/POC but a more scalable solution
+// would move this into its own deployable asset that can be 
+// independently scaled if needed.
 public class MessageBus : IMessageBus
 {
     private readonly ILogger<MessageBus> _logger;
@@ -13,22 +18,22 @@ public class MessageBus : IMessageBus
         _context = context;
     }
 
-    public async Task ProcessAsync()
+    public async Task ProcessAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var pendingPaymentRequests = await _context.OutboxMessages
                 .Where(m => m.Status == OutboxMessageStatus.Pending)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-            await SendPaymentRequestsAsync(pendingPaymentRequests);
+            await SendPaymentRequestsAsync(pendingPaymentRequests, cancellationToken);
 
             var pendingPaymentResponses = await _context.Messages
                 .Where(m => m.ProcessedAt == null &&
                     (m.Type == MessageType.PaymentSucceeded || m.Type == MessageType.PaymentFailed))
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-            await HandlePaymentResponsesAsync(pendingPaymentResponses);
+            await HandlePaymentResponsesAsync(pendingPaymentResponses, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -38,7 +43,7 @@ public class MessageBus : IMessageBus
         }
     }
 
-    private async Task SendPaymentRequestsAsync(List<OutboxMessage> messages)
+    private async Task SendPaymentRequestsAsync(List<OutboxMessage> messages, CancellationToken cancellationToken)
     {
         foreach (var message in messages)
         {
@@ -60,10 +65,10 @@ public class MessageBus : IMessageBus
             });
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task HandlePaymentResponsesAsync(List<Message> messages)
+    private async Task HandlePaymentResponsesAsync(List<Message> messages, CancellationToken cancellationToken)
     {
         var successes = new HashSet<int>();
         var failures = new HashSet<int>();
@@ -96,17 +101,17 @@ public class MessageBus : IMessageBus
 
         var successfulPayments = await _context.Payments
             .Where(m => successes.Contains(m.Id))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var tickets = await _context.Tickets
             .Include(t => t.Purchase)
                 .ThenInclude(p => p.Payment)
             .Where(t => successes.Contains(t.Purchase.Payment.Id))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var failedPayments = await _context.Payments
             .Where(m => failures.Contains(m.Id))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var payment in successfulPayments)
         {
@@ -123,6 +128,6 @@ public class MessageBus : IMessageBus
             payment.MarkFailed();
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

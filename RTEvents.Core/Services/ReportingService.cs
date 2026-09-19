@@ -9,7 +9,7 @@ public class ReportingService : IReportingService
         _context = context;
     }
 
-    public async Task<EventsReport> GenerateReportByEventAsync(int skip = 0, int take = 100)
+    public async Task<EventsReport> GenerateReportByEventAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default)
     {
         var result = new EventsReport();
 
@@ -34,7 +34,7 @@ public class ReportingService : IReportingService
                     t.AvailabilityStatus,
                 }).ToList(),
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var totalOfAllEventTickets = 0.0m;
         var totalSoldCount = 0;

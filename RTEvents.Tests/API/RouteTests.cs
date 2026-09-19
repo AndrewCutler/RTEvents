@@ -20,10 +20,10 @@ public class RouteTests
     {
         await using var host = await ApiHost.Create();
         var e = Samples.Event();
-        host.Events.Setup(s => s.GetByIdAsync(7)).ReturnsAsync(e);
-        host.Events.Setup(s => s.CreateAsync("Concert", "An evening concert", e.Date, e.Time, "UTC", 10, 2)).ReturnsAsync(e);
-        host.Events.Setup(s => s.UpdateAsync(7, null, null, null, null, null, null, null)).ReturnsAsync(e);
-        host.Events.Setup(s => s.DeleteAsync(7)).Returns(Task.CompletedTask);
+        host.Events.Setup(s => s.GetByIdAsync(7, It.IsAny<CancellationToken>())).ReturnsAsync(e);
+        host.Events.Setup(s => s.CreateAsync("Concert", "An evening concert", e.Date, e.Time, "UTC", 10, 2, It.IsAny<CancellationToken>())).ReturnsAsync(e);
+        host.Events.Setup(s => s.UpdateAsync(7, null, null, null, null, null, null, null, It.IsAny<CancellationToken>())).ReturnsAsync(e);
+        host.Events.Setup(s => s.DeleteAsync(7, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var get = await host.Client.GetAsync("/api/events/7");
         Assert.Equal(HttpStatusCode.OK, get.StatusCode);
@@ -43,8 +43,8 @@ public class RouteTests
     public async Task Ticket_routes_bind_idempotency_header_and_query()
     {
         await using var host = await ApiHost.Create();
-        host.Tickets.Setup(s => s.PurchaseTicketsAsync(2, 7, "token", "request-1")).ReturnsAsync(new Purchase(25m, []));
-        host.Tickets.Setup(s => s.GetTicketAvailabilityAsync(7)).ReturnsAsync(new TicketAvailability(7, 5, 2, 3, 10));
+        host.Tickets.Setup(s => s.PurchaseTicketsAsync(2, 7, "token", "request-1", It.IsAny<CancellationToken>())).ReturnsAsync(new Purchase(25m, []));
+        host.Tickets.Setup(s => s.GetTicketAvailabilityAsync(7, It.IsAny<CancellationToken>())).ReturnsAsync(new TicketAvailability(7, 5, 2, 3, 10));
         using var request = new HttpRequestMessage(HttpMethod.Put, "/api/tickets/purchase") { Content = JsonContent.Create(new PurchaseTicketRequestDTO(2, 7, "token")) };
         request.Headers.Add("Idempotency-Key", "request-1");
         var purchase = await host.Client.SendAsync(request);
@@ -60,7 +60,7 @@ public class RouteTests
     public async Task Reports_and_message_bus_routes_are_reachable()
     {
         await using var host = await ApiHost.Create();
-        host.Reports.Setup(s => s.GenerateReportByEventAsync(5, 20)).ReturnsAsync(new EventsReport { TotalSales = 12m });
+        host.Reports.Setup(s => s.GenerateReportByEventAsync(5, 20, It.IsAny<CancellationToken>())).ReturnsAsync(new EventsReport { TotalSales = 12m });
         var reports = await host.Client.GetAsync("/api/reports?skip=5&take=20");
         Assert.Equal(HttpStatusCode.OK, reports.StatusCode);
         Assert.Equal(12m, (await reports.Content.ReadFromJsonAsync<EventsReportDTO>())!.TotalSales);
@@ -106,7 +106,7 @@ public class RouteTests
             "key" => new MissingIdempotencyKeyException("Purchase"), "mismatch" => new MismatchedIdempotencyKeyException("old", "new"),
             _ => new InvalidOperationException("private failure details")
         };
-        host.Events.Setup(s => s.GetByIdAsync(7)).ThrowsAsync(error);
+        host.Events.Setup(s => s.GetByIdAsync(7, It.IsAny<CancellationToken>())).ThrowsAsync(error);
         var response = await host.Client.GetAsync("/api/events/7");
         Assert.Equal(status, (int)response.StatusCode);
         if (status == 400) Assert.Contains(error.Message, await response.Content.ReadAsStringAsync());

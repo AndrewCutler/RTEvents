@@ -15,7 +15,7 @@ public class MessageBusController : ControllerBase
     }
 
     [HttpPost(Name = nameof(CreatePaymentResponseAsync))]
-    public async Task<ActionResult> CreatePaymentResponseAsync([FromBody] CreatePaymentResponseRequestDTO dto)
+    public async Task<ActionResult> CreatePaymentResponseAsync([FromBody] CreatePaymentResponseRequestDTO dto, CancellationToken cancellationToken = default)
     {
         var response = new PaymentResponseEvent(dto.PaymentId, dto.Success);
 
@@ -26,7 +26,7 @@ public class MessageBusController : ControllerBase
             CreatedAt = DateTimeOffset.UtcNow,
         });
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Ok();
     }

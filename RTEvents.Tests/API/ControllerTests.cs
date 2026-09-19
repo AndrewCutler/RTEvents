@@ -11,12 +11,13 @@ namespace RTEvents.Tests.API;
 
 public class ControllerTests
 {
+    private readonly CancellationToken _token = new CancellationTokenSource().Token;
     [Fact]
     public async Task Get_event_returns_200_and_mapped_body()
     {
         var service = new Mock<IEventsService>(MockBehavior.Strict);
-        service.Setup(s => s.GetByIdAsync(7)).ReturnsAsync(Samples.Event());
-        var result = Assert.IsType<OkObjectResult>((await new EventsController(service.Object).GetEventByIdAsync(7)).Result);
+        service.Setup(s => s.GetByIdAsync(7, _token)).ReturnsAsync(Samples.Event());
+        var result = Assert.IsType<OkObjectResult>((await new EventsController(service.Object).GetEventByIdAsync(7, _token)).Result);
         Assert.Equal(200, result.StatusCode);
         Assert.Equal(EventDTO.FromDomain(Samples.Event()), Assert.IsType<EventDTO>(result.Value));
         service.VerifyAll();
@@ -26,8 +27,8 @@ public class ControllerTests
     public async Task Get_missing_event_returns_404()
     {
         var service = new Mock<IEventsService>();
-        service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((Event?)null);
-        Assert.Equal(404, Assert.IsType<NotFoundResult>((await new EventsController(service.Object).GetEventByIdAsync(99)).Result).StatusCode);
+        service.Setup(s => s.GetByIdAsync(99, _token)).ReturnsAsync((Event?)null);
+        Assert.Equal(404, Assert.IsType<NotFoundResult>((await new EventsController(service.Object).GetEventByIdAsync(99, _token)).Result).StatusCode);
     }
 
     [Fact]
@@ -35,8 +36,8 @@ public class ControllerTests
     {
         var dto = new CreateEventRequestDTO("Concert", "An evening concert", new(2026, 10, 1), new(19, 30), "UTC", 2, 10);
         var service = new Mock<IEventsService>(MockBehavior.Strict);
-        service.Setup(s => s.CreateAsync(dto.Name, dto.Description, dto.Date, dto.Time, dto.Timezone, dto.TicketCapacity, dto.VenueId)).ReturnsAsync(Samples.Event());
-        var result = Assert.IsType<CreatedAtRouteResult>((await new EventsController(service.Object).CreateEventAsync(dto)).Result);
+        service.Setup(s => s.CreateAsync(dto.Name, dto.Description, dto.Date, dto.Time, dto.Timezone, dto.TicketCapacity, dto.VenueId, _token)).ReturnsAsync(Samples.Event());
+        var result = Assert.IsType<CreatedAtRouteResult>((await new EventsController(service.Object).CreateEventAsync(dto, _token)).Result);
         Assert.Equal(201, result.StatusCode);
         Assert.Equal(nameof(EventsController.GetEventByIdAsync), result.RouteName);
         Assert.Equal(7, result.RouteValues!["id"]);
@@ -49,8 +50,8 @@ public class ControllerTests
     {
         var dto = new UpdateEventRequestDTO(7, "Concert", "An evening concert", new(2026, 10, 1), new(19, 30), "UTC", null, 10);
         var service = new Mock<IEventsService>(MockBehavior.Strict);
-        service.Setup(s => s.UpdateAsync(7, dto.Name, dto.Description, dto.Date, dto.Time, dto.Timezone, null, dto.TicketCapacity)).ReturnsAsync(Samples.Event());
-        var result = Assert.IsType<OkObjectResult>((await new EventsController(service.Object).UpdateEventAsync(dto)).Result);
+        service.Setup(s => s.UpdateAsync(7, dto.Name, dto.Description, dto.Date, dto.Time, dto.Timezone, null, dto.TicketCapacity, _token)).ReturnsAsync(Samples.Event());
+        var result = Assert.IsType<OkObjectResult>((await new EventsController(service.Object).UpdateEventAsync(dto, _token)).Result);
         Assert.Equal(200, result.StatusCode);
         Assert.Equal(EventDTO.FromDomain(Samples.Event()), result.Value);
         service.VerifyAll();
@@ -60,9 +61,9 @@ public class ControllerTests
     public async Task Delete_forwards_id_and_returns_200()
     {
         var service = new Mock<IEventsService>(MockBehavior.Strict);
-        service.Setup(s => s.DeleteAsync(7)).Returns(Task.CompletedTask);
-        Assert.Equal(200, Assert.IsType<OkResult>(await new EventsController(service.Object).DeleteEventAsync(7)).StatusCode);
-        service.Verify(s => s.DeleteAsync(7), Times.Once);
+        service.Setup(s => s.DeleteAsync(7, _token)).Returns(Task.CompletedTask);
+        Assert.Equal(200, Assert.IsType<OkResult>(await new EventsController(service.Object).DeleteEventAsync(7, _token)).StatusCode);
+        service.Verify(s => s.DeleteAsync(7, _token), Times.Once);
     }
 
     [Theory]
@@ -71,8 +72,8 @@ public class ControllerTests
     public async Task Purchase_forwards_body_and_header_and_maps_response(string? key)
     {
         var service = new Mock<ITicketsService>(MockBehavior.Strict);
-        service.Setup(s => s.PurchaseTicketsAsync(2, 7, "token", key)).ReturnsAsync(new Purchase(25m, []));
-        var result = Assert.IsType<OkObjectResult>((await new TicketsController(service.Object).PurchaseEventTicketAsync(new(2, 7, "token"), key)).Result);
+        service.Setup(s => s.PurchaseTicketsAsync(2, 7, "token", key, _token)).ReturnsAsync(new Purchase(25m, []));
+        var result = Assert.IsType<OkObjectResult>((await new TicketsController(service.Object).PurchaseEventTicketAsync(new(2, 7, "token"), key, _token)).Result);
         Assert.Equal(200, result.StatusCode);
         Assert.Equal(new PurchaseTicketsResponseDTO(25m, PurchaseStatus.Pending), result.Value);
         service.VerifyAll();
@@ -82,8 +83,8 @@ public class ControllerTests
     public async Task Availability_forwards_id_and_returns_mapped_counts()
     {
         var service = new Mock<ITicketsService>(MockBehavior.Strict);
-        service.Setup(s => s.GetTicketAvailabilityAsync(7)).ReturnsAsync(new TicketAvailability(7, 5, 2, 3, 10));
-        var result = Assert.IsType<OkObjectResult>((await new TicketsController(service.Object).GetEventTicketAvailabilityAsync(7)).Result);
+        service.Setup(s => s.GetTicketAvailabilityAsync(7, _token)).ReturnsAsync(new TicketAvailability(7, 5, 2, 3, 10));
+        var result = Assert.IsType<OkObjectResult>((await new TicketsController(service.Object).GetEventTicketAvailabilityAsync(7, _token)).Result);
         Assert.Equal(200, result.StatusCode);
         Assert.Equal(new TicketAvailabilityDTO(7, 5, 2, 3, 10), result.Value);
         service.VerifyAll();
@@ -93,8 +94,8 @@ public class ControllerTests
     public async Task Reports_forwards_pagination_and_maps_results()
     {
         var service = new Mock<IReportingService>(MockBehavior.Strict);
-        service.Setup(s => s.GenerateReportByEventAsync(5, 20)).ReturnsAsync(new EventsReport { TotalSales = 12.5m, TotalTicketsSold = 2 });
-        var result = Assert.IsType<OkObjectResult>((await new ReportsController(service.Object).GetEventsReportsAsync(5, 20)).Result);
+        service.Setup(s => s.GenerateReportByEventAsync(5, 20, _token)).ReturnsAsync(new EventsReport { TotalSales = 12.5m, TotalTicketsSold = 2 });
+        var result = Assert.IsType<OkObjectResult>((await new ReportsController(service.Object).GetEventsReportsAsync(5, 20, _token)).Result);
         Assert.Equal(200, result.StatusCode);
         var dto = Assert.IsType<EventsReportDTO>(result.Value);
         Assert.Equal(12.5m, dto.TotalSales);
@@ -111,12 +112,12 @@ public class ControllerTests
         Message? message = null;
         Mock.Get(db.Context.Object.Messages).Setup(s => s.Add(It.IsAny<Message>())).Callback<Message>(m => message = m);
         var before = DateTimeOffset.UtcNow;
-        Assert.Equal(200, Assert.IsType<OkResult>(await new MessageBusController(db.Context.Object).CreatePaymentResponseAsync(new(42, success))).StatusCode);
+        Assert.Equal(200, Assert.IsType<OkResult>(await new MessageBusController(db.Context.Object).CreatePaymentResponseAsync(new(42, success), _token)).StatusCode);
         Assert.NotNull(message);
         Assert.Equal(type, message.Type);
         Assert.Equal(new PaymentResponseEvent(42, success), JsonSerializer.Deserialize<PaymentResponseEvent>(message.Payload));
         Assert.InRange(message.CreatedAt, before, DateTimeOffset.UtcNow);
-        db.VerifySaved();
+        db.Context.Verify(c => c.SaveChangesAsync(_token), Times.Once);
     }
 
     public static TheoryData<Exception?, int> Errors => new()

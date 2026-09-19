@@ -14,9 +14,9 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<EventsReportDTO>> GetEventsReportsAsync([FromQuery] int skip, [FromQuery] int take)
+    public async Task<ActionResult<EventsReportDTO>> GetEventsReportsAsync([FromQuery] int skip, [FromQuery] int take, CancellationToken cancellationToken = default)
     {
-        var result = await _reportingService.GenerateReportByEventAsync(skip: skip, take: take);
+        var result = await _reportingService.GenerateReportByEventAsync(skip: skip, take: take, cancellationToken: cancellationToken);
 
         return Ok(EventsReportDTO.FromDomain(result));
     }

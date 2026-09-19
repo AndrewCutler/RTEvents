@@ -17,7 +17,7 @@ public class OutboxHandler : BackgroundService
             using var scope = _serviceProvider.CreateScope();
             var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-            await messageBus.ProcessAsync();
+            await messageBus.ProcessAsync(stoppingToken);
 
             // Ideally this would be configurable.
             await Task.Delay(TimeSpan.FromSeconds(90), stoppingToken);

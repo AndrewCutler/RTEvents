@@ -40,7 +40,7 @@ internal sealed class MockDatabase : IDisposable
         set.As<IQueryable<T>>().Setup(s => s.GetEnumerator()).Returns(() => items.AsEnumerable().GetEnumerator());
         set.As<IAsyncEnumerable<T>>().Setup(s => s.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
             .Returns(() => new AsyncEnumerator<T>(items.AsEnumerable().GetEnumerator()));
-        set.Setup(s => s.FindAsync(It.IsAny<object?[]>())).Returns((object?[] keys) =>
+        set.Setup(s => s.FindAsync(It.IsAny<object?[]>(), It.IsAny<CancellationToken>())).Returns((object?[] keys, CancellationToken token) =>
             new ValueTask<T?>(items.SingleOrDefault(item => Equals(
                 typeof(T).GetProperty(typeof(T) == typeof(IdempotencyKey) ? "Key" : "Id")!.GetValue(item), keys[0]))));
         return set;

@@ -1,4 +1,4 @@
 public interface IMessageBus
 {
-    Task ProcessAsync();
+    Task ProcessAsync(CancellationToken cancellationToken = default);
 }

@@ -9,7 +9,7 @@ public class OutboxHandlerTests
     {
         using var cancellation = new CancellationTokenSource();
         var bus = new Mock<IMessageBus>();
-        bus.Setup(b => b.ProcessAsync()).Callback(cancellation.Cancel).Returns(Task.CompletedTask);
+        bus.Setup(b => b.ProcessAsync(cancellation.Token)).Callback(cancellation.Cancel).Returns(Task.CompletedTask);
         var scopedProvider = new Mock<IServiceProvider>();
         scopedProvider.Setup(p => p.GetService(typeof(IMessageBus))).Returns(bus.Object);
         var scope = new Mock<IServiceScope>();
@@ -20,7 +20,7 @@ public class OutboxHandlerTests
         provider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(factory.Object);
         using var worker = new TestableOutboxHandler(provider.Object);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => worker.Run(cancellation.Token));
-        bus.Verify(b => b.ProcessAsync(), Times.Once);
+        bus.Verify(b => b.ProcessAsync(cancellation.Token), Times.Once);
         factory.Verify(f => f.CreateScope(), Times.Once);
         scope.Verify(s => s.Dispose(), Times.Once);
     }
@@ -39,7 +39,7 @@ public class OutboxHandlerTests
     {
         var error = new InvalidOperationException("processing failed");
         var bus = new Mock<IMessageBus>();
-        bus.Setup(b => b.ProcessAsync()).ThrowsAsync(error);
+        bus.Setup(b => b.ProcessAsync(It.IsAny<CancellationToken>())).ThrowsAsync(error);
         var provider = new Mock<IServiceProvider>();
         provider.Setup(p => p.GetService(typeof(IMessageBus))).Returns(bus.Object);
         var scope = new Mock<IServiceScope>();

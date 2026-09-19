@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 public class EventsService : IEventsService
 {
     private readonly RTEventsDbContext _context;
@@ -16,7 +14,8 @@ public class EventsService : IEventsService
         TimeOnly time,
         string timezone,
         int ticketCapacity,
-        int venueId)
+        int venueId,
+        CancellationToken cancellationToken = default)
     {
         var @event = new Event(
             name,
@@ -27,17 +26,17 @@ public class EventsService : IEventsService
             ticketCapacity,
             venueId);
 
-        await ValidateAsync(@event);
+        await ValidateAsync(@event, cancellationToken);
 
         _context.Events.Add(@event);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return @event;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var @event = await _context.Events.FindAsync(id);
+        var @event = await _context.Events.FindAsync([id], cancellationToken);
 
         if (@event is null)
         {
@@ -45,12 +44,12 @@ public class EventsService : IEventsService
         }
 
         @event.Delete();
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Event?> GetByIdAsync(int id)
+    public async Task<Event?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var @event = await _context.Events.FindAsync(id);
+        var @event = await _context.Events.FindAsync([id], cancellationToken);
 
         return @event;
     }
@@ -63,9 +62,10 @@ public class EventsService : IEventsService
         TimeOnly? time = null,
         string? timezone = null,
         int? venueId = null,
-        int? ticketCapacity = null)
+        int? ticketCapacity = null,
+        CancellationToken cancellationToken = default)
     {
-        var @event = await _context.Events.FindAsync(id);
+        var @event = await _context.Events.FindAsync([id], cancellationToken);
 
         if (@event is null)
         {
@@ -81,15 +81,15 @@ public class EventsService : IEventsService
             venueId: venueId,
             ticketCapacity: ticketCapacity);
 
-        await ValidateAsync(@event);
-        await _context.SaveChangesAsync();
+        await ValidateAsync(@event, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return @event;
     }
 
-    private async Task ValidateAsync(Event @event)
+    private async Task ValidateAsync(Event @event, CancellationToken cancellationToken)
     {
-        var venue = await _context.Venues.FindAsync(@event.VenueId);
+        var venue = await _context.Venues.FindAsync([@event.VenueId], cancellationToken);
         if (venue is null)
         {
             throw new VenueNotFoundException(@event.VenueId);
