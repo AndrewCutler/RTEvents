@@ -1,12 +1,15 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 public class TicketsService : ITicketsService
 {
+    private readonly ILogger<TicketsService> _logger;
     private readonly RTEventsDbContext _context;
 
-    public TicketsService(RTEventsDbContext context)
+    public TicketsService(ILogger<TicketsService> logger, RTEventsDbContext context)
     {
+        _logger = logger;
         _context = context;
     }
 
@@ -14,7 +17,7 @@ public class TicketsService : ITicketsService
     {
         if (string.IsNullOrWhiteSpace(idempotencyKey))
         {
-            throw new Exception("todo custom exception");
+            throw new MissingIdempotencyKeyException(nameof(PurchaseTicketsAsync));
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -26,14 +29,14 @@ public class TicketsService : ITicketsService
             var request = $"purchase-ticket--quantity:{quantity};eventId:{eventId}";
             if (key is not null)
             {
-                if (!string.Equals(request, key?.Request))
+                if (!string.Equals(request, key.Request))
                 {
-                    throw new Exception("todo custom exception"); // 409 conflict
+                    throw new MismatchedIdempotencyKeyException(key.Request, request);
                 }
 
-                var existingPurchase = await _context.Purchases.FindAsync(key!.PurchaseId);
+                var existingPurchase = await _context.Purchases.FindAsync(key.PurchaseId);
 
-                return existingPurchase ?? throw new Exception();
+                return existingPurchase ?? throw new PurchaseNotFoundException(key.PurchaseId);
             }
             else
             {
@@ -49,9 +52,9 @@ public class TicketsService : ITicketsService
 
             if (@event is null)
             {
-                throw new Exception("todo custom exception");
+                throw new EventNotFoundException(eventId);
             }
-            
+
             var tickets = @event.HoldTickets(quantity);
             var purchase = new Purchase(tickets.Sum(t => t.Cost), tickets);
             var payment = new Payment(purchase.Total, paymentDetails, purchase);
@@ -77,7 +80,7 @@ public class TicketsService : ITicketsService
         }
         catch (Exception ex)
         {
-            // log
+            _logger.LogError(ex, "Encountered an error purchasing tickets");
             await transaction.RollbackAsync();
 
             throw;

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 public class EventsService : IEventsService
 {
     private readonly RTEventsDbContext _context;

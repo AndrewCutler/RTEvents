@@ -135,11 +135,8 @@ public class Event
         var tickets = new List<Ticket>();
         for (var i = 0; i < quantity; i++)
         {
-            var ticket = new Ticket // TODO: constructor
-            {
-                EventId = Id,
-                AvailabilityStatus = AvailabilityStatus.Held,
-            };
+            var ticket = new Ticket(Id);
+            ticket.MarkHeld();
             tickets.Add(ticket);
             Tickets.Add(ticket);
         }
