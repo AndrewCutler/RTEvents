@@ -95,9 +95,9 @@ public class TicketsServiceTests
 
     [Theory]
     [InlineData(99, 1, typeof(EventNotFoundException))]
-    [InlineData(7, 0, typeof(Exception))]
-    [InlineData(7, -1, typeof(Exception))]
-    [InlineData(7, 11, typeof(Exception))]
+    [InlineData(7, 0, typeof(ArgumentException))]
+    [InlineData(7, -1, typeof(ArgumentException))]
+    [InlineData(7, 11, typeof(ArgumentException))]
     public async Task Purchase_rolls_back_when_event_or_quantity_is_invalid(int eventId, int quantity, Type errorType)
     {
         using var db = new MockDatabase();

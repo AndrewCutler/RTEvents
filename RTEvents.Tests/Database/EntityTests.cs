@@ -107,7 +107,7 @@ public class EntityTests
     public void HoldTickets_rejects_invalid_quantities_without_mutation(int quantity)
     {
         var e = Samples.Event();
-        Assert.Throws<Exception>(() => e.HoldTickets(quantity));
+        Assert.Throws<ArgumentException>(() => e.HoldTickets(quantity));
         Assert.Empty(e.Tickets);
         Assert.Equal(10, e.AvailableTicketCount);
     }
@@ -117,7 +117,7 @@ public class EntityTests
     {
         var e = Samples.Event();
         e.HoldTickets(8);
-        Assert.Throws<Exception>(() => e.HoldTickets(3));
+        Assert.Throws<ArgumentException>(() => e.HoldTickets(3));
         Assert.Equal(8, e.Tickets.Count);
         Assert.Equal(2, e.AvailableTicketCount);
     }
